@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Results</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <h1>Results for "{{ query }}"</h1>
+
+    <!-- Search Box on Results Page -->
+    <form action="{{ url_for('search') }}" method="post">
+        <input type="text" name="query" placeholder="Enter a search term" value="{{ query }}">
+        <button type="submit">Search</button>
+        <button type="submit" formaction="{{ url_for('refine') }}">Refine</button>
+    </form>
+
+    <!-- Image Results -->
+    <div class="results">
+        {% for image in results %}
+            <div class="image-item">
+                <img src="{{ image.url }}" alt="Image {{ image.id }}">
+                <div>
+                    <button onclick="likeImage({{ image.id }}, 'like')">Like ({{ image.likes }})</button>
+                    <button onclick="likeImage({{ image.id }}, 'dislike')">Dislike ({{ image.dislikes }})</button>
+                    <button onclick="commentImage({{ image.id }})">Comment</button>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- Popup Comment Box -->
+    <div id="comment-box" style="display: none;">
+        <textarea id="comment-text"></textarea>
+        <button id="submit-comment">Submit</button>
+    </div>
+
+    <script>
+        function likeImage(imageId, action) {
+            $.post('/like', {image_id: imageId, action: action}, function(response) {
+                if (response.success) {
+                    location.reload();
+                }
+            });
+        }
+
+        function commentImage(imageId) {
+            $('#comment-box').show();
+            $('#submit-comment').off('click').on('click', function() {
+                const comment = $('#comment-text').val();
+                $.post('/comment', {image_id: imageId, comment: comment}, function(response) {
+                    if (response.success) {
+                        $('#comment-box').hide();
+                        location.reload();
+                    }
+                });
+            });
+        }
+    </script>
+</body>
+</html>
